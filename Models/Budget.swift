@@ -18,7 +18,7 @@ extension Budget {
         let request = Budget.fetchRequest()
         request.predicate = NSPredicate(format: "month == %d AND year == %d", month, year)
         request.fetchLimit = 1
-        if let existing = try? context.fetch(request).first, let existing {
+        if let existing = try? context.fetch(request).first {
             return existing
         }
         let budget = Budget(context: context)

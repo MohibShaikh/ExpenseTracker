@@ -22,7 +22,6 @@ targets:
     dependencies:
       - sdk: VisionKit.framework
       - sdk: Vision.framework
-      - sdk: Charts.framework
     settings:
       base:
         PRODUCT_NAME: ExpenseTracker

@@ -1,6 +1,5 @@
 import SwiftUI
 import CoreData
-import Charts
 
 struct AnalyticsView: View {
     @Environment(\.managedObjectContext) private var context
@@ -13,15 +12,21 @@ struct AnalyticsView: View {
                 Text("Spending by Category")
                     .font(.headline)
 
-                Chart(summary, id: \.category) { item in
-                    SectorMark(
-                        angle: .value("Total", item.total as Decimal),
-                        innerRadius: .ratio(0.5)
-                    )
-                    .foregroundStyle(by: .value("Category", item.category))
+                // Simple bar chart representation using rectangles
+                VStack(spacing: 8) {
+                    ForEach(summary, id: \.category) { item in
+                        HStack {
+                            Text(item.category)
+                                .frame(width: 100, alignment: .leading)
+                            Rectangle()
+                                .fill(Color.blue.opacity(0.7))
+                                .frame(width: max(10, CGFloat(item.total.doubleValue) * 2), height: 20)
+                            Text(item.total.stringValue)
+                                .frame(width: 80, alignment: .trailing)
+                        }
+                    }
                 }
-                .chartLegend(.visible)
-                .frame(height: 240)
+                .padding()
 
                 Text("Totals")
                     .font(.headline)
