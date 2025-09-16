@@ -13,10 +13,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Setup Homebrew
         run: |
           brew update
           brew install xcodegen || true
+          sudo gem install xcpretty --no-document
 
       - name: Generate Xcode Project
         run: xcodegen generate
@@ -25,6 +31,6 @@ jobs:
         run: xcodebuild -version
 
       - name: Build (Debug)
-        run: xcodebuild -project ExpenseTracker.xcodeproj -scheme ExpenseTracker -destination 'generic/platform=iOS' -configuration Debug build | xcpretty || true
+        run: set -o pipefail && xcodebuild -project ExpenseTracker.xcodeproj -scheme ExpenseTracker -destination 'generic/platform=iOS' -configuration Debug build | xcpretty
 
 
