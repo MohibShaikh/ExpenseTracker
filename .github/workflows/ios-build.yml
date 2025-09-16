@@ -30,7 +30,30 @@ jobs:
       - name: Xcode version
         run: xcodebuild -version
 
-      - name: Build (Debug)
-        run: set -o pipefail && xcodebuild -project ExpenseTracker.xcodeproj -scheme ExpenseTracker -destination 'generic/platform=iOS' -configuration Debug build | xcpretty
+      - name: Show project schemes/targets
+        run: xcodebuild -list -project ExpenseTracker.xcodeproj | cat
+
+      - name: Show available SDKs
+        run: xcodebuild -showsdks | cat
+
+      - name: Build (Debug, no signing)
+        run: |
+          set -o pipefail
+          xcodebuild -project ExpenseTracker.xcodeproj \
+            -scheme ExpenseTracker \
+            -destination 'generic/platform=iOS' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            -resultBundlePath build/ResultBundle \
+            build | tee build/build.log
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-build-artifacts
+          path: |
+            build/build.log
+            build/ResultBundle.xcresult
 
 
