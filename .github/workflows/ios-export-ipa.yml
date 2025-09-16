@@ -1,13 +1,20 @@
-name: iOS - Build and Export IPA
+name: iOS - Export Signed IPA
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      team_id:
+        description: 'Apple Developer Team ID'
+        required: true
+        type: string
+      bundle_id:
+        description: 'App Bundle ID'
+        required: true
+        type: string
+        default: 'com.example.expensetracker'
 
 jobs:
-  build:
+  export-ipa:
     runs-on: macos-14
     steps:
       - name: Checkout
@@ -27,26 +34,11 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: Xcode version
-        run: xcodebuild -version
-
-      - name: Show project schemes/targets
-        run: xcodebuild -list -project ExpenseTracker.xcodeproj | cat
-
-      - name: Show available SDKs
-        run: xcodebuild -showsdks | cat
-
-      - name: Build (Debug, no signing)
+      - name: Update Bundle ID
         run: |
-          mkdir -p build
-          set -o pipefail
-          xcodebuild -project ExpenseTracker.xcodeproj \
-            -scheme ExpenseTracker \
-            -destination 'generic/platform=iOS' \
-            -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            -resultBundlePath build/ResultBundle \
-            build 2>&1 | tee build/build.log
+          # Update the bundle ID in project.yml
+          sed -i '' "s/com.example.expensetracker/${{ github.event.inputs.bundle_id }}/g" project.yml
+          xcodegen generate
 
       - name: Create Export Options Plist
         run: |
@@ -58,7 +50,7 @@ jobs:
               <key>method</key>
               <string>development</string>
               <key>teamID</key>
-              <string>YOUR_TEAM_ID</string>
+              <string>${{ github.event.inputs.team_id }}</string>
               <key>compileBitcode</key>
               <false/>
               <key>stripSwiftSymbols</key>
@@ -69,28 +61,38 @@ jobs:
           </plist>
           EOF
 
-      - name: Export IPA (Development)
+      - name: Archive App
+        run: |
+          set -o pipefail
+          xcodebuild -project ExpenseTracker.xcodeproj \
+            -scheme ExpenseTracker \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            -archivePath build/ExpenseTracker.xcarchive \
+            -allowProvisioningUpdates \
+            archive | tee build/archive.log
+
+      - name: Export IPA
         run: |
           set -o pipefail
           xcodebuild -exportArchive \
             -archivePath build/ExpenseTracker.xcarchive \
             -exportPath build/ipa \
             -exportOptionsPlist ExportOptions.plist \
-            -allowProvisioningUpdates || echo "Export failed - need proper signing setup"
+            -allowProvisioningUpdates | tee build/export.log
 
-      - name: List build directory
-        run: |
-          echo "Build directory contents:"
-          find build -type f -name "*.log" -o -name "*.xcresult" -o -name "*.ipa" 2>/dev/null || echo "No build artifacts found"
-          ls -la build/ 2>/dev/null || echo "Build directory does not exist"
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExpenseTracker-IPA
+          path: build/ipa/*.ipa
+          retention-days: 30
 
-      - name: Upload build artifacts
+      - name: Upload Build Logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: xcode-build-artifacts
+          name: build-logs
           path: |
-            build/
-          if-no-files-found: warn
-
-
+            build/archive.log
+            build/export.log
