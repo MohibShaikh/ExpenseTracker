@@ -1,4 +1,4 @@
-name: iOS - Build and Export IPA
+name: iOS - Build
 
 on:
   push:
@@ -38,7 +38,6 @@ jobs:
 
       - name: Build (Debug, no signing)
         run: |
-          mkdir -p build
           set -o pipefail
           xcodebuild -project ExpenseTracker.xcodeproj \
             -scheme ExpenseTracker \
@@ -46,43 +45,7 @@ jobs:
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             -resultBundlePath build/ResultBundle \
-            build 2>&1 | tee build/build.log
-
-      - name: Create Export Options Plist
-        run: |
-          cat > ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>development</string>
-              <key>teamID</key>
-              <string>YOUR_TEAM_ID</string>
-              <key>compileBitcode</key>
-              <false/>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>thinning</key>
-              <string>&lt;none&gt;</string>
-          </dict>
-          </plist>
-          EOF
-
-      - name: Export IPA (Development)
-        run: |
-          set -o pipefail
-          xcodebuild -exportArchive \
-            -archivePath build/ExpenseTracker.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions.plist \
-            -allowProvisioningUpdates || echo "Export failed - need proper signing setup"
-
-      - name: List build directory
-        run: |
-          echo "Build directory contents:"
-          find build -type f -name "*.log" -o -name "*.xcresult" -o -name "*.ipa" 2>/dev/null || echo "No build artifacts found"
-          ls -la build/ 2>/dev/null || echo "Build directory does not exist"
+            build | tee build/build.log
 
       - name: Upload build artifacts
         if: always()
@@ -90,7 +53,7 @@ jobs:
         with:
           name: xcode-build-artifacts
           path: |
-            build/
-          if-no-files-found: warn
+            build/build.log
+            build/ResultBundle.xcresult
 
 
