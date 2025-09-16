@@ -1,0 +1,49 @@
+name: ExpenseTracker
+options:
+  minimumXcodeGenVersion: 2.41.0
+  deploymentTarget:
+    iOS: "16.0"
+packages: {}
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.example.expensetracker
+    DEVELOPMENT_TEAM: ""
+    SWIFT_VERSION: 5.9
+    INFOPLIST_FILE: App/Info.plist
+targets:
+  ExpenseTracker:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Models
+      - path: Services
+      - path: Views
+    dependencies:
+      - sdk: VisionKit.framework
+      - sdk: Vision.framework
+      - sdk: Charts.framework
+    settings:
+      base:
+        PRODUCT_NAME: ExpenseTracker
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0
+        CODE_SIGN_STYLE: Automatic
+    scheme:
+      testTargets: []
+    info:
+      path: App/Info.plist
+      properties:
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIUserInterfaceStyle: Light
+        NSCameraUsageDescription: "We use the camera to scan receipts."
+        NSPhotoLibraryAddUsageDescription: "Save scanned receipt photos to your library."
+        NSPhotoLibraryUsageDescription: "Allow access to attach receipt photos."
+
