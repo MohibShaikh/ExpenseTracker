@@ -45,7 +45,7 @@ final class OCRService {
     }
 
     private static func extractAmounts(from lines: [String]) -> [Decimal] {
-        let amountRegex = try! NSRegularExpression(pattern: "(?<![\n\w])([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})|[0-9]+\\.[0-9]{2})(?![\n\w])")
+        let amountRegex = try! NSRegularExpression(pattern: "(?<![\n\\w])([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})|[0-9]+\\.[0-9]{2})(?![\n\\w])")
         var found = [Decimal]()
         for line in lines {
             let range = NSRange(line.startIndex..<line.endIndex, in: line)
