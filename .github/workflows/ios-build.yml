@@ -38,14 +38,15 @@ jobs:
 
       - name: Build (Debug, no signing)
         run: |
+          mkdir -p build
           set -o pipefail
           xcodebuild -project ExpenseTracker.xcodeproj \
             -scheme ExpenseTracker \
             -destination 'generic/platform=iOS' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            -resultBundlePath build/ResultBundle \
-            build | tee build/build.log
+            -resultBundlePath build/ResultBundle.xcresult \
+            build 2>&1 | tee build/build.log
 
       - name: Upload build artifacts
         if: always()
